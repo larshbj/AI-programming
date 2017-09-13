@@ -17,13 +17,21 @@ class SearchNode():
         parent
         kids
 
-    def calculateF(self, g, h):
+    def calculateCost(self, g, h):
         f = g + h
 
 # ---------------------------------------------
 
 
-# sub-classes
+# Rush-hour specific classes
+class Car(Object):
+    def __init__(self, car_parameters, is_hero):
+        self.orientation = car_parameters[0]
+        self.horizontal_coord = car_parameters[1]
+        self.vertical_coord = car_parameters[2]
+        self.size = car_parameters[3]
+        self.is_hero = is_hero
+
 class RushHourState(SearchState):
     def __init__(self, board):
         SearchState.__init__(self)
@@ -36,6 +44,16 @@ class RushHourBfs(BestFirstSearch):
     def __init__(self, goal_state):
         BestFirstSearch.__init__(self)
         self.goal_state = goal_state
+
+        open_states = {}
+        board = []
+
+        with open(board_file) as f:
+            rows = f.readlines()
+            rows = [row.replace('\n', '') for row in rows]
+            for row in rows:
+                board.append([int(x) for x in row.split(",")])
+        print (board)
 
     def createRootNode(self):
         # creates initial search state
