@@ -1,21 +1,19 @@
 from AStar import BestFirstSearch, SearchState, SearchNode
 
-class Car(Object):
-    def __init__(self, index, car_params):
+class Car(object):
+    def __init__(self, car_params):
         self.orientation = car_params[0]
         self.horizontal_coord = car_params[1]
         self.vertical_coord = car_params[2]
         self.size = car_params[3]
-        self.is_hero = index === 0
 
 class RushHourState(SearchState):
     def __init__(self, car_params_list):
         SearchState.__init__(self)
-        self.id = createStateIdentifier(car_params_list)
         self.hero = Car(car_params_list.pop(0))
         self.obstacles = []
         for car_params in car_params_list:
-            cars.append(Car(index, car_params))
+            self.obstacles.append(Car(car_params))
 
     def createStateIdentifier(self, car_params_list):
         # Creates state id from car parameters
@@ -24,12 +22,11 @@ class RushHourState(SearchState):
 class RushHourNode(SearchNode):
     def __init__(self, car_params_list):
         SearchNode.__init__(self)
-        self.state = RushHourState(self.car_params_list)
-        self.id = self.state.id
-        self.board
-        self.children
-        self.parent
-
+        self.state = RushHourState(car_params_list)
+        self.id = self.state.createStateIdentifier(car_params_list)
+        # self.children
+        # self.parent
+        # self.board
 
         # calculates g, h for problem specific rules
         # Handles parent/children connection
@@ -71,13 +68,14 @@ class RushHourNode(SearchNode):
 
 
 class RushHourBfs(BestFirstSearch):
-    def __init__(self, car_params_list_file, goal_state):
+    def __init__(self, car_params_list_file, board_size, goal_state):
         BestFirstSearch.__init__(self)
+        self.board_size = board_size
         self.goal_state = goal_state
 
         self.nodes = {}
-        self.open_nodes_id = []
-        self.closed_nodes_id = []
+        self.open_node_ids = []
+        self.closed_node_ids = []
 
         self.car_params_list = []
 
@@ -87,26 +85,46 @@ class RushHourBfs(BestFirstSearch):
             for row in rows:
                 self.car_params_list.append([int(x) for x in row.split(",")])
 
+        self.createRootNode()
+        print (self.nodes)
+        print (self.open_node_ids)
+        print (self.closed_node_ids)
+
+
+    def createBoard(self, node):
+        board = []
+        board_row = ['*'] * self.board_size
+        column = 0
+        while (column < self.board_size):
+            board.append(board_row)
+            column += 1
+        print (board)
+
     def createRootNode(self):
+
         root_node = RushHourNode(self.car_params_list)
-        nodes[root_node.id] = root_node
-        open_nodes.append(root_node.id)
+        self.nodes[root_node.id] = root_node
+        self.open_node_ids.append(root_node.id)
 
     def generateSuccesorStates(self, node):
         # expands (parent) node
         # generate children to parent state
-        closed_nodes.append(node.id)
-        open_nodes.append(node.getChildrenIds())
+        closed_node_ids.append(node.id)
+        open_node_ids.append(node.getChildrenIds())
 
 
     def isSolution(self, node):
         # compares state of node to goal_state
+        return
 
     def heuristicEvaluation(self, node):
         # estimaed distance-to-goal from nodes state
+        return
 
     def arcCost(self, parent_node, child_node):
         # arc-cost between parent node and child node
+        return
 
+board_size = 6
 goal_state = (5,2)
-rh = RushHourBfs("car_params_lists/easy-3.txt", goal_state)
+rh = RushHourBfs("boards/easy-3.txt", board_size, goal_state)
