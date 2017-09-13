@@ -1,4 +1,3 @@
-# Generic classes
 class BestFirstSearch():
     def __init__(self):
     # manages the overall operation of A*
