@@ -25,6 +25,7 @@ class RushHourNode(SearchNode):
     def __init__(self, car_params_list):
         SearchNode.__init__(self)
         self.state = RushHourState(self.car_params_list)
+        self.id = self.state.id
         self.children
         self.parent
 
@@ -38,8 +39,9 @@ class RushHourBfs(BestFirstSearch):
         BestFirstSearch.__init__(self)
         self.goal_state = goal_state
 
-        self.open_nodes = []
-        self.closed_nodes = []
+        self.nodes = {}
+        self.open_nodes_id = []
+        self.closed_nodes_id = []
 
         self.car_params_list = []
 
@@ -50,8 +52,9 @@ class RushHourBfs(BestFirstSearch):
                 self.car_params_list.append([int(x) for x in row.split(",")])
 
     def createRootNode(self):
-        self.initial_state = RushHourNode(self.car_params_list)
-        # creates initial search state
+        root_node = RushHourNode(self.car_params_list)
+        nodes[root_node.id] = root_node
+        open_nodes.append(root_node.id)
 
     def generateSuccesorStates(self, node):
         # expands (parent) node
