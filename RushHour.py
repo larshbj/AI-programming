@@ -26,13 +26,49 @@ class RushHourNode(SearchNode):
         SearchNode.__init__(self)
         self.state = RushHourState(self.car_params_list)
         self.id = self.state.id
+        self.board
         self.children
         self.parent
+
 
         # calculates g, h for problem specific rules
         # Handles parent/children connection
     def getChildrenIds(self):
-        return []
+        children = []
+        for car in self.state.cars:
+            x = car.horizontal_coord
+            y = car.vertical_coord
+            orientation = car.orientation
+            size = car.size
+            if canMove(orientation, x, y, size):
+                # hashID = something
+                # children.append(hashID)
+        return children
+
+    def canMove(self, orientation, x, y):
+
+
+    def canMoveUp(self, orientation, x, y):
+        if orientation is 0 return false
+        # trenger logikk for out of bounds exception
+        if self.board[x][y-1] == '*' return true
+
+    def canMoveDown(self, orientation, x, y, size):
+        if orientation is 0 return false
+        # trenger logikk for out of bounds exception
+        if self.board[x][y+size] == '*' return true
+
+    def canMoveLeft(self, orientation, x, y):
+        if orientation is 1 return false
+        # trenger logikk for out of bounds exception
+        if self.board[x-1][y] == '*' return true
+
+    def canMoveRight(self, orientation, x, y, size):
+        if orientation is 1 return false
+        # trenger logikk for out of bounds exception
+        if self.board[x+size][y] == '*' return true
+
+
 
 class RushHourBfs(BestFirstSearch):
     def __init__(self, car_params_list_file, goal_state):
