@@ -8,21 +8,35 @@ class Car(object):
         self.size = car_params[3]
 
 class RushHourState(SearchState):
-    def __init__(self, car_params_list):
+    def __init__(self, car_params_list, board_size):
         SearchState.__init__(self)
-        self.hero = Car(car_params_list.pop(0))
-        self.obstacles = []
+        self.board_size = board_size
+        self.cars = []
         for car_params in car_params_list:
-            self.obstacles.append(Car(car_params))
+            self.cars.append(Car(car_params))
 
     def createStateIdentifier(self, car_params_list):
         # Creates state id from car parameters
         return ''.join(str(item) for row in car_params_list for item in row)
 
+    def createStateBoard(self):
+        size = self.board_size
+        board = [['*']*size for i in range(size)]
+        for index, car in enumerate(self.cars):
+            x = car.horizontal_coord
+            y = car.vertical_coord
+            for i in range(car.size):
+                board[y][x] = str(index)
+                if car.orientation == 0:
+                    x += 1
+                elif car.orientation == 1:
+                    y += 1
+        self.board = board
+
 class RushHourNode(SearchNode):
-    def __init__(self, car_params_list):
+    def __init__(self, car_params_list, board_size):
         SearchNode.__init__(self)
-        self.state = RushHourState(car_params_list)
+        self.state = RushHourState(car_params_list, board_size)
         self.id = self.state.createStateIdentifier(car_params_list)
         # self.children
         # self.parent
@@ -94,6 +108,7 @@ class RushHourBfs(BestFirstSearch):
 
         self.car_params_list = []
 
+        # Read from file
         with open(car_params_list_file) as f:
             rows = f.readlines()
             rows = [row.replace('\n', '') for row in rows]
@@ -101,23 +116,12 @@ class RushHourBfs(BestFirstSearch):
                 self.car_params_list.append([int(x) for x in row.split(",")])
 
         self.createRootNode()
-        print (self.nodes)
-        print (self.open_node_ids)
-        print (self.closed_node_ids)
 
-
-    def createBoard(self, node):
-        board = []
-        board_row = ['*'] * self.board_size
-        column = 0
-        while (column < self.board_size):
-            board.append(board_row)
-            column += 1
-        print (board)
+    def printStateBoard(self, node):
+        print (node.state.board)
 
     def createRootNode(self):
-
-        root_node = RushHourNode(self.car_params_list)
+        root_node = RushHourNode(self.car_params_list, board_size)
         self.nodes[root_node.id] = root_node
         self.open_node_ids.append(root_node.id)
 
@@ -143,3 +147,7 @@ class RushHourBfs(BestFirstSearch):
 board_size = 6
 goal_state = (5,2)
 rh = RushHourBfs("boards/easy-3.txt", board_size, goal_state)
+node = rh.nodes[rh.open_node_ids.pop(0)]
+node.state.createStateBoard()
+print (node.state.board)
+
