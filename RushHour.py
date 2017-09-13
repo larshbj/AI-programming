@@ -30,6 +30,8 @@ class RushHourNode(SearchNode):
 
         # calculates g, h for problem specific rules
         # Handles parent/children connection
+
+    # TODO: rydde/endre denne koden
     def getChildrenIds(self):
         children = []
         for car in self.state.cars:
@@ -37,12 +39,21 @@ class RushHourNode(SearchNode):
             y = car.vertical_coord
             orientation = car.orientation
             size = car.size
-            if canMove(orientation, x, y, size):
-                # hashID = something
-                # children.append(hashID)
+            for move in legalMoves[orientation, x, y, size]:
+                children.append(move)
         return children
 
-    def canMove(self, orientation, x, y):
+    def legalMoves(self, orientation, x, y, size):
+        legal_moves = []
+        if canMoveUp(orientation, x, y):
+            #  make and add hashID to legal_moves
+        if canMoveDown(orientation, x, y, size):
+            #  make and add hashID to legal_moves
+        if canMoveLeft(orientation, x, y):
+            #   make and add hashID to legal_moves
+        if canMoveRight(orientation, x, y):
+            #  make and add hashID to legal_moves
+        return legal_moves
 
 
     def canMoveUp(self, orientation, x, y):
