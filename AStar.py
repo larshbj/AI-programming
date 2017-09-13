@@ -4,8 +4,10 @@ class BestFirstSearch():
         return
 
     def attachAndEval(self, C ,P):
+        return
 
     def propagatePathImprovements(self, P):
+        return
 
 class SearchState():
     def __init__(self):

@@ -46,35 +46,39 @@ class RushHourNode(SearchNode):
     def legalMoves(self, orientation, x, y, size):
         legal_moves = []
         if canMoveUp(orientation, x, y):
+            return
             #  make and add hashID to legal_moves
         if canMoveDown(orientation, x, y, size):
+            return
             #  make and add hashID to legal_moves
         if canMoveLeft(orientation, x, y):
+            return
             #   make and add hashID to legal_moves
         if canMoveRight(orientation, x, y):
+            return
             #  make and add hashID to legal_moves
         return legal_moves
 
 
     def canMoveUp(self, orientation, x, y):
-        if orientation is 0 return false
+        if orientation == 0: return false
         # trenger logikk for out of bounds exception
-        if self.board[x][y-1] == '*' return true
+        if self.board[x][y-1] == '*': return true
 
     def canMoveDown(self, orientation, x, y, size):
-        if orientation is 0 return false
+        if orientation == 0: return false
         # trenger logikk for out of bounds exception
-        if self.board[x][y+size] == '*' return true
+        if self.board[x][y+size] == '*': return true
 
     def canMoveLeft(self, orientation, x, y):
-        if orientation is 1 return false
+        if orientation == 1: return false
         # trenger logikk for out of bounds exception
-        if self.board[x-1][y] == '*' return true
+        if self.board[x-1][y] == '*': return true
 
     def canMoveRight(self, orientation, x, y, size):
-        if orientation is 1 return false
+        if orientation == 1: return false
         # trenger logikk for out of bounds exception
-        if self.board[x+size][y] == '*' return true
+        if self.board[x+size][y] == '*': return true
 
 
 
