@@ -14,7 +14,8 @@ class RushHourState(SearchState):
         self.cars = []
         for car_params in car_params_list:
             self.cars.append(Car(car_params))
-        self.createStateBoardFromCarParams()
+        self.board = self.createStateBoardFromCarParams()
+
 
     def createStateIdentifier(self, car_params_list):
         # Creates state id from car parameters
@@ -32,7 +33,7 @@ class RushHourState(SearchState):
                     x += 1
                 elif car.orientation == 1:
                     y += 1
-        self.board = board
+        return board
 
 class RushHourNode(SearchNode):
     def __init__(self, car_params_list, board_size):
@@ -75,8 +76,8 @@ class RushHourNode(SearchNode):
         return legal_moves
 
     def isOutsideOfBoard(x, y, board_size):
-        if x > board_size or x < board_size \
-        or y > board_size or y < board_size:
+        if x > board_size or x < 0 \
+        or y > board_size or y < 0:
             return false
         else:
             return true
