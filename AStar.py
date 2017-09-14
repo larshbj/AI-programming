@@ -1,6 +1,7 @@
 class BestFirstSearch():
     def __init__(self):
         # manages the overall operation of A*
+
         return
 
     def attachAndEval(self, C ,P):

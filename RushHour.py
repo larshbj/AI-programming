@@ -19,7 +19,6 @@ class RushHourState(SearchState):
 
     def createStateIdentifier(self, board):
         # Creates state id from car parameters
-        print (''.join(str(item) for row in board for item in row))
         # return ''.join(str(item) for row in car_params_list for item in row)
         return ''.join(str(item) for row in board for item in row)
 
@@ -39,7 +38,7 @@ class RushHourState(SearchState):
         return board
 
 class RushHourNode(SearchNode):
-    def __init__(self, car_params_list, board_size):
+    def __init__(self, car_params_list, board_size, parent):
         SearchNode.__init__(self)
         self.state = RushHourState(car_params_list, board_size)
         self.board_size = board_size
@@ -47,7 +46,10 @@ class RushHourNode(SearchNode):
         self.id = self.state.createStateIdentifier(self.board)
         self.children = self.getChildrenIds()
         print (self.children)
-        # self.parent
+        self.parent = parent
+        self.g = self.parent.g + 1 if parent else 0
+        print (self.g)
+
 
         # calculates g, h for problem specific rules
         # Handles parent/children connection
@@ -152,27 +154,6 @@ class RushHourNode(SearchNode):
         if self.isOutsideOfBoard(car.x+car.size, car.y, self.board_size) \
         and self.board[car.y][car.x+car.size] == '*': return True
 
-    # def canMoveUp(self, orientation, x, y):
-    #     if orientation == 0: return False
-    #     if self.isOutsideOfBoard(x, y-1, self.board_size) \
-    #     and self.board[y-1][x] == '*': return True
-    #
-    # def canMoveDown(self, orientation, x, y, size):
-    #     if orientation == 0: return False
-    #     if self.isOutsideOfBoard(x, y+size, self.board_size) \
-    #     and self.board[y+size][x] == '*': return True
-    #
-    # def canMoveLeft(self, orientation, x, y):
-    #     if orientation == 1: return False
-    #     if self.isOutsideOfBoard(x-1, y, self.board_size) \
-    #     and self.board[y][x-1] == '*': return True
-    #
-    # def canMoveRight(self, orientation, x, y, size):
-    #     if orientation == 1: return False
-    #     if self.isOutsideOfBoard(x+size, y, self.board_size) \
-    #     and self.board[y][x+size] == '*': return True
-
-
 
 class RushHourBfs(BestFirstSearch):
     def __init__(self, car_params_list_file, board_size, goal_state):
@@ -193,15 +174,27 @@ class RushHourBfs(BestFirstSearch):
             for row in rows:
                 self.car_params_list.append([int(x) for x in row.split(",")])
 
-        self.createRootNode()
+        node = self.createRootNode()
+        # while True:
+        #     if not self.open_node_ids:
+        #         print("fail")
+        #         break;
+        #     successors = self.generateSuccesorStates(node)
+        #     for s in successors:
+        #         if isGenerated(s):
+
+
+
+
 
     def printStateBoard(self, node):
         print (node.state.board)
 
     def createRootNode(self):
-        root_node = RushHourNode(self.car_params_list, self.board_size)
+        root_node = RushHourNode(self.car_params_list, self.board_size, None)
         self.nodes[root_node.id] = root_node
         self.open_node_ids.append(root_node.id)
+        return root_node
 
     def generateSuccesorStates(self, node):
         # expands (parent) node
@@ -209,8 +202,14 @@ class RushHourBfs(BestFirstSearch):
 
         # Kan flyttes til AStar ?
         closed_node_ids.append(node.id)
-        open_node_ids.append(node.getChildrenIds())
+        open_node_ids.pop(0)
+        open_node_ids.append(node.children)
 
+    def isGenerated(self, node):
+        if node in open_node_ids \
+        or node in closed_node_ids:
+            return True
+        return False
 
     def isSolution(self, node):
         # compares state of node to goal_state
@@ -222,7 +221,7 @@ class RushHourBfs(BestFirstSearch):
 
     def arcCost(self, parent_node, child_node):
         # arc-cost between parent node and child node
-        return
+        return 1
 
 board_size = 6
 goal_state = (5,2)
