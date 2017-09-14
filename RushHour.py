@@ -14,12 +14,13 @@ class RushHourState(SearchState):
         self.cars = []
         for car_params in car_params_list:
             self.cars.append(Car(car_params))
+        self.createStateBoardFromCarParams()
 
     def createStateIdentifier(self, car_params_list):
         # Creates state id from car parameters
         return ''.join(str(item) for row in car_params_list for item in row)
 
-    def createStateBoard(self):
+    def createStateBoardFromCarParams(self):
         size = self.board_size
         board = [['*']*size for i in range(size)]
         for index, car in enumerate(self.cars):
@@ -73,26 +74,33 @@ class RushHourNode(SearchNode):
             #  make and add hashID to legal_moves
         return legal_moves
 
+    def isOutsideOfBoard(x, y, board_size):
+        if x > board_size or x < board_size \
+        or y > board_size or y < board_size:
+            return false
+        else:
+            return true
+
 
     def canMoveUp(self, orientation, x, y):
         if orientation == 0: return false
-        # trenger logikk for out of bounds exception
-        if self.board[x][y-1] == '*': return true
+        if not isOutsideOfBoard(x, y-1, self.board_size) \
+        and self.board[x][y-1] == '*': return true
 
     def canMoveDown(self, orientation, x, y, size):
         if orientation == 0: return false
-        # trenger logikk for out of bounds exception
-        if self.board[x][y+size] == '*': return true
+        if not isOutsideOfBoard(x, y+size, self.board_size) \
+        and self.board[x][y+size] == '*': return true
 
     def canMoveLeft(self, orientation, x, y):
         if orientation == 1: return false
-        # trenger logikk for out of bounds exception
-        if self.board[x-1][y] == '*': return true
+        if not isOutsideOfBoard(x-1, y, self.board_size) \
+        and self.board[x-1][y] == '*': return true
 
     def canMoveRight(self, orientation, x, y, size):
         if orientation == 1: return false
-        # trenger logikk for out of bounds exception
-        if self.board[x+size][y] == '*': return true
+        if not isOutsideOfBoard(x+size, y, self.board_size) \
+        and self.board[x+size][y] == '*': return true
 
 
 
@@ -128,6 +136,8 @@ class RushHourBfs(BestFirstSearch):
     def generateSuccesorStates(self, node):
         # expands (parent) node
         # generate children to parent state
+
+        # Kan flyttes til AStar ?
         closed_node_ids.append(node.id)
         open_node_ids.append(node.getChildrenIds())
 
@@ -147,7 +157,5 @@ class RushHourBfs(BestFirstSearch):
 board_size = 6
 goal_state = (5,2)
 rh = RushHourBfs("boards/easy-3.txt", board_size, goal_state)
-node = rh.nodes[rh.open_node_ids.pop(0)]
-node.state.createStateBoard()
-print (node.state.board)
+# node = rh.nodes[rh.open_node_ids.pop(0)]
 

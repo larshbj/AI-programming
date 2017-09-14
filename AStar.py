@@ -1,6 +1,6 @@
 class BestFirstSearch():
     def __init__(self):
-    # manages the overall operation of A*
+        # manages the overall operation of A*
         return
 
     def attachAndEval(self, C ,P):
@@ -25,8 +25,8 @@ class SearchNode():
         # parent
         # kids
 
-    def calculateCost(self, g, h):
-        f = g + h
+    def calculateCost(self, node):
+        node.f = node.g + node.h
 
     # In general, a search-node class and its methods for handling
         # a) parent-child node connections, and
