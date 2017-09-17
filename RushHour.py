@@ -10,7 +10,7 @@ class Car(object):
     def toString(self):
         return ("{}{}{}{}".format(self.orientation, self.x, self.y, self.size))
 
-class RushHourState():
+class RushHourState(SearchState):
     def __init__(self, cars, board_size):
         self.cars = cars
         self.board = self.createStateBoardFromCars(board_size)
@@ -110,21 +110,32 @@ class RushHourState():
                     children.append(move)
         return children # or chil_states
 
-class RushHourNode():
+class RushHourNode(SearchNode):
     # In general, a search-node class and its methods for handling
         # a) parent-child node connections, and
         # b) general search-graph creation and maintenance
     # should be sufficient for most A* applications.
-    def __init__(self, state, board_size, parent=None):
+    def __init__(self, state, board_size, goal_coords, parent=None):
         self.state = state
         self.id = state.id
         self.board_size = board_size
-        self.parent = parent
-        self.children = []
+        self.goal_coords = goal_coords
+        SearchNode.__init__(self, parent)
 
         # calculates g, h for problem specific rules
 
     # TODO: rydde/endre denne koden - gjøre den mer sexy
+
+    def heuristicEvaluation(self):
+        hero = self.state.cars[0]
+        board = self.state.board
+        distance_to_goal = goal_coords['x'] - (hero.x+hero.size-1)
+        number_of_obstacles = 0
+        for i in range(distance_to_goal-1):
+            x = hero.x + i
+            if board[hero.y][x] != '*':
+                number_of_obstacles += 1
+        return distance_to_goal + number_of_obstacles
 
     def generateSuccesorStates(self):
         # expands (parent) node
@@ -138,11 +149,12 @@ class RushHourNode():
         return nodes
 
 
-class RushHourBfs():
-    def __init__(self, file, board_size, goal_state):
+class RushHourBfs(BestFirstSearch):
+    def __init__(self, file, board_size, goal_coords):
         self.board_size = board_size
-        self.goal_state = goal_state
-        self.root_node = self.createRootNode(file)
+        self.goal_coords = goal_coords
+        root_node = self.createRootNode(file)
+        BestFirstSearch.__init__(self, root_node)
 
     def createRootNode(self, file):
         cars = []
@@ -153,29 +165,18 @@ class RushHourBfs():
                 cars.append(Car([int(x) for x in row.split(",")]))
 
         root_state = RushHourState(cars, board_size)
-        return RushHourNode(root_state, board_size)
-
-    def isGenerated(self, node):
-        if node in open_node_ids \
-        or node in closed_node_ids:
-            return True
-        return False
+        return RushHourNode(root_state, board_size, goal_coords)
 
     def isSolution(self, node):
-        # compares state of node to goal_state
-        return
-
-    def heuristicEvaluation(self, node):
-        # estimaed distance-to-goal from nodes state
-        return
+        return goal_coords['x'] - (hero.x+hero.size-1) == 0
 
     def arcCost(self, parent_node, child_node):
         # arc-cost between parent node and child node
         return 1
 
 board_size = 6
-goal_state = (5,2)
-rh = RushHourBfs("boards/easy-3.txt", board_size, goal_state)
+goal_coords = {'x': 5, 'y': 2}
+rh = RushHourBfs("boards/easy-3.txt", board_size, goal_coords)
 # solution = BestFirstSearch(rh)
 
 
