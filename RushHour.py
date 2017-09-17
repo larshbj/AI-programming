@@ -7,23 +7,24 @@ class Car(object):
         self.y = car_params[2]
         self.size = car_params[3]
 
+    def toString(self):
+        return ("{}{}{}{}".format(self.orientation, self.x, self.y, self.size))
+
 class RushHourState():
-    def __init__(self, car_params_list, board_size):
-        self.board_size = board_size
-        self.cars = []
-        for car_params in car_params_list:
-            self.cars.append(Car(car_params))
-        self.board = self.createStateBoardFromCarParams()
+    def __init__(self, cars, board_size):
+        self.cars = cars
+        self.board = self.createStateBoardFromCars(board_size)
+        self.id = self.createStateIdentifier()
 
 
-    def createStateIdentifier(self, board):
-        # Creates state id from car parameters
-        # return ''.join(str(item) for row in car_params_list for item in row)
-        return ''.join(str(item) for row in board for item in row)
+    def createStateIdentifier(self):
+        state_id = ''
+        for car in self.cars:
+            state_id = state_id + car.toString()
+        return state_id
 
-    def createStateBoardFromCarParams(self):
-        size = self.board_size
-        board = [['*']*size for i in range(size)]
+    def createStateBoardFromCars(self, board_size):
+        board = [['*']*board_size for i in range(board_size)]
         for index, car in enumerate(self.cars):
             x = car.x
             y = car.y
@@ -33,7 +34,6 @@ class RushHourState():
                     x += 1
                 elif car.orientation == 1:
                     y += 1
-        print (board)
         return board
 
     def legalMoves(self, car_nr, car):
@@ -93,32 +93,9 @@ class RushHourState():
         if self.isOutsideOfBoard(car.x+car.size, car.y, self.board_size) \
         and self.board[car.y][car.x+car.size] == '*': return True
 
-    def getChildStates(self):
-        childStates = []
-        return childStates
+    def getChildCarParams(self):
+        child_states = []
 
-class RushHourNode():
-    # In general, a search-node class and its methods for handling
-        # a) parent-child node connections, and
-        # b) general search-graph creation and maintenance
-    # should be sufficient for most A* applications.
-    def __init__(self, car_params_list, board_size, parent):
-        self.state = RushHourState(car_params_list, board_size)
-        self.board_size = board_size
-        self.board = self.state.board
-        self.id = self.state.createStateIdentifier(self.board)
-        self.children = self.getChildrenIds()
-        print (self.children)
-        self.parent = parent
-        self.g = self.parent.g + 1 if parent else 0
-        print (self.g)
-
-
-        # calculates g, h for problem specific rules
-        # Handles parent/children connection
-
-    # TODO: rydde/endre denne koden - gjøre den mer sexy
-    def getChildrenIds(self):
         children = []
         for index, car in enumerate(self.state.cars):
             x = car.x
@@ -131,56 +108,52 @@ class RushHourNode():
             if legal_moves:
                 for move in legal_moves:
                     children.append(move)
-        return children
+        return children # or chil_states
 
-    def createNodeIdentifier(self, board):
-        return ''.join(str(item) for row in board for item in row)
+class RushHourNode():
+    # In general, a search-node class and its methods for handling
+        # a) parent-child node connections, and
+        # b) general search-graph creation and maintenance
+    # should be sufficient for most A* applications.
+    def __init__(self, state, board_size, parent=None):
+        self.state = state
+        self.id = state.id
+        self.board_size = board_size
+        self.parent = parent
+        self.children = []
 
-    def generateSuccesorStates(self, state):
+        # calculates g, h for problem specific rules
+
+    # TODO: rydde/endre denne koden - gjøre den mer sexy
+
+    def generateSuccesorStates(self):
         # expands (parent) node
         # generate children to parent state
 
-        state.getChildStates()
+        nodes = []
+        successor_states = self.state.getChildStates()
+
+        for state in successor_states:
+            nodes.append(RushHourNode(state))
+        return nodes
+
 
 class RushHourBfs():
-    def __init__(self, car_params_list_file, board_size, goal_state):
+    def __init__(self, file, board_size, goal_state):
         self.board_size = board_size
         self.goal_state = goal_state
+        self.root_node = self.createRootNode(file)
 
-        self.nodes = {}
-        self.open_node_ids = []
-        self.closed_node_ids = []
-
-        self.car_params_list = []
-
-        # Read from file
-        with open(car_params_list_file) as f:
+    def createRootNode(self, file):
+        cars = []
+        with open(file) as f:
             rows = f.readlines()
             rows = [row.replace('\n', '') for row in rows]
             for row in rows:
-                self.car_params_list.append([int(x) for x in row.split(",")])
+                cars.append(Car([int(x) for x in row.split(",")]))
 
-        node = self.createRootNode()
-        # while True:
-        #     if not self.open_node_ids:
-        #         print("fail")
-        #         break;
-        #     successors = self.generateSuccesorStates(node)
-        #     for s in successors:
-        #         if isGenerated(s):
-
-
-
-
-
-    def printStateBoard(self, node):
-        print (node.state.board)
-
-    def createRootNode(self):
-        root_node = RushHourNode(self.car_params_list, self.board_size, None)
-        self.nodes[root_node.id] = root_node
-        self.open_node_ids.append(root_node.id)
-        return root_node
+        root_state = RushHourState(cars, board_size)
+        return RushHourNode(root_state, board_size)
 
     def isGenerated(self, node):
         if node in open_node_ids \
@@ -203,4 +176,29 @@ class RushHourBfs():
 board_size = 6
 goal_state = (5,2)
 rh = RushHourBfs("boards/easy-3.txt", board_size, goal_state)
-solution = BestFirstSearch(rh)
+# solution = BestFirstSearch(rh)
+
+
+# car1 = [0,2,2,2]
+# car2 = [0,0,4,3]
+# car3 = [0,3,4,2]
+# car4 = [0,4,1,2]
+# car5 = [1,2,0,2]
+# car6 = [1,4,2,2]
+
+# cars = [car1,car2,car3,car4,car5,car6]
+
+# state = RushHourState(cars, board_size)
+# node = RushHourNode(state, board_size)
+# print (node.id)
+# print (node.state.board)
+
+
+
+
+
+
+
+
+
+
