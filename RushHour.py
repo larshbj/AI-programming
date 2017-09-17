@@ -1,4 +1,5 @@
 from AStar import BestFirstSearch, SearchState, SearchNode
+from copy import deepcopy
 
 class Car(object):
     def __init__(self, car_params):
@@ -13,15 +14,15 @@ class Car(object):
 class RushHourState(SearchState):
     def __init__(self, cars, board_size):
         self.cars = cars
+        self.board_size = board_size
         self.board = self.createStateBoardFromCars(board_size)
-        self.id = self.createStateIdentifier()
-
+        self.createStateIdentifier()
 
     def createStateIdentifier(self):
         state_id = ''
         for car in self.cars:
             state_id = state_id + car.toString()
-        return state_id
+        self.id = state_id
 
     def createStateBoardFromCars(self, board_size):
         board = [['*']*board_size for i in range(board_size)]
@@ -36,42 +37,12 @@ class RushHourState(SearchState):
                     y += 1
         return board
 
-    def legalMoves(self, car_nr, car):
-        legal_moves = []
-        new_board = self.board
-        if self.canMoveUp(car):
-            #  make and add hashID to legal_moves
-            new_board[car.y-1][car.x] = car_nr
-            new_board[car.y+car.size-1][car.x] = '*'
-            print ("up")
-            legal_moves.append(self.createNodeIdentifier(new_board))
-        if self.canMoveDown(car):
-            #  make and add hashID to legal_moves
-            new_board[car.y+1][car.x] = car_nr
-            new_board[car.y][car.x] = '*'
-            print ("down")
-            legal_moves.append(self.createNodeIdentifier(new_board))
-        if self.canMoveLeft(car):
-            #   make and add hashID to legal_moves
-            new_board[car.y][car.x-1] = car_nr
-            new_board[car.y][car.x+car.size-1] = '*'
-            print ("left")
-            legal_moves.append(self.createNodeIdentifier(new_board))
-        if self.canMoveRight(car):
-            #  make and add hashID to legal_moves
-            new_board[car.y][car.x+1] = car_nr
-            new_board[car.y][car.x] = '*'
-            print ("right")
-            legal_moves.append(self.createNodeIdentifier(new_board))
-        return legal_moves
-
     def isOutsideOfBoard(self, x, y, board_size):
         if x > board_size-1 or x < 0 \
         or y > board_size-1 or y < 0:
             return False
         else:
             return True
-
 
     def canMoveUp(self, car):
         if car.orientation == 0: return False
@@ -93,22 +64,32 @@ class RushHourState(SearchState):
         if self.isOutsideOfBoard(car.x+car.size, car.y, self.board_size) \
         and self.board[car.y][car.x+car.size] == '*': return True
 
-    def getChildCarParams(self):
-        child_states = []
+    def generateSuccesorStates(self):
+        successor_states = []
+        for index, car in enumerate(self.cars):
+            new_board = self.board
+            if self.canMoveUp(car):
+                new_state = deepcopy(self)
+                new_state.cars[index].y -= 1
+                new_state.createStateIdentifier()
+                successor_states.append(new_state)
+            if self.canMoveDown(car):
+                new_state = deepcopy(self)
+                new_state.cars[index].y += 1
+                new_state.createStateIdentifier()
+                successor_states.append(new_state)
+            if self.canMoveLeft(car):
+                new_state = deepcopy(self)
+                new_state.cars[index].x -= 1
+                new_state.createStateIdentifier()
+                successor_states.append(new_state)
+            if self.canMoveRight(car):
+                new_state = deepcopy(self)
+                new_state.cars[index].x += 1
+                new_state.createStateIdentifier()
+                successor_states.append(new_state)
 
-        children = []
-        for index, car in enumerate(self.state.cars):
-            x = car.x
-            y = car.y
-            orientation = car.orientation
-            size = car.size
-            print (orientation, x, y, size)
-            # legal_moves = self.legalMoves(str(index), orientation, x, y, size)
-            legal_moves = self.legalMoves(str(index), car)
-            if legal_moves:
-                for move in legal_moves:
-                    children.append(move)
-        return children # or chil_states
+        return successor_states # or chil_states
 
 class RushHourNode(SearchNode):
     # In general, a search-node class and its methods for handling
@@ -122,30 +103,29 @@ class RushHourNode(SearchNode):
         self.goal_coords = goal_coords
         SearchNode.__init__(self, parent)
 
-        # calculates g, h for problem specific rules
-
-    # TODO: rydde/endre denne koden - gjøre den mer sexy
-
     def heuristicEvaluation(self):
         hero = self.state.cars[0]
         board = self.state.board
-        distance_to_goal = goal_coords['x'] - (hero.x+hero.size-1)
+        distance_to_goal = self.goal_coords['x'] - (hero.x+hero.size-1)
         number_of_obstacles = 0
+
         for i in range(distance_to_goal-1):
             x = hero.x + i
             if board[hero.y][x] != '*':
                 number_of_obstacles += 1
+
         return distance_to_goal + number_of_obstacles
 
-    def generateSuccesorStates(self):
+    def generateSuccessorNodes(self):
         # expands (parent) node
-        # generate children to parent state
+        # generate successor_states to parent state
 
         nodes = []
-        successor_states = self.state.getChildStates()
+        successor_states = self.state.generateSuccesorStates()
 
-        for state in successor_states:
-            nodes.append(RushHourNode(state))
+        if successor_states is not None:
+            for state in successor_states:
+                nodes.append(RushHourNode(state, self.board_size, self.goal_coords, self))
         return nodes
 
 
@@ -168,38 +148,13 @@ class RushHourBfs(BestFirstSearch):
         return RushHourNode(root_state, board_size, goal_coords)
 
     def isSolution(self, node):
+        hero = node.state.cars[0]
         return goal_coords['x'] - (hero.x+hero.size-1) == 0
 
-    def arcCost(self, parent_node, child_node):
+    def arcCost(self, successor, parent):
         # arc-cost between parent node and child node
         return 1
 
 board_size = 6
 goal_coords = {'x': 5, 'y': 2}
 rh = RushHourBfs("boards/easy-3.txt", board_size, goal_coords)
-# solution = BestFirstSearch(rh)
-
-
-# car1 = [0,2,2,2]
-# car2 = [0,0,4,3]
-# car3 = [0,3,4,2]
-# car4 = [0,4,1,2]
-# car5 = [1,2,0,2]
-# car6 = [1,4,2,2]
-
-# cars = [car1,car2,car3,car4,car5,car6]
-
-# state = RushHourState(cars, board_size)
-# node = RushHourNode(state, board_size)
-# print (node.id)
-# print (node.state.board)
-
-
-
-
-
-
-
-
-
-
