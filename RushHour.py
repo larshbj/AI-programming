@@ -67,26 +67,25 @@ class RushHourState(SearchState):
     def generateSuccesorStates(self):
         successor_states = []
         for index, car in enumerate(self.cars):
-            new_board = self.board
             if self.canMoveUp(car):
-                new_state = deepcopy(self)
-                new_state.cars[index].y -= 1
-                new_state.createStateIdentifier()
+                new_cars = deepcopy(self.cars)
+                new_cars[index].y -= 1
+                new_state = RushHourState(new_cars, board_size)
                 successor_states.append(new_state)
             if self.canMoveDown(car):
-                new_state = deepcopy(self)
-                new_state.cars[index].y += 1
-                new_state.createStateIdentifier()
+                new_cars = deepcopy(self.cars)
+                new_cars[index].y += 1
+                new_state = RushHourState(new_cars, board_size)
                 successor_states.append(new_state)
             if self.canMoveLeft(car):
-                new_state = deepcopy(self)
-                new_state.cars[index].x -= 1
-                new_state.createStateIdentifier()
+                new_cars = deepcopy(self.cars)
+                new_cars[index].x -= 1
+                new_state = RushHourState(new_cars, board_size)
                 successor_states.append(new_state)
             if self.canMoveRight(car):
-                new_state = deepcopy(self)
-                new_state.cars[index].x += 1
-                new_state.createStateIdentifier()
+                new_cars = deepcopy(self.cars)
+                new_cars[index].x += 1
+                new_state = RushHourState(new_cars, board_size)
                 successor_states.append(new_state)
 
         return successor_states # or chil_states
@@ -158,3 +157,4 @@ class RushHourBfs(BestFirstSearch):
 board_size = 6
 goal_coords = {'x': 5, 'y': 2}
 rh = RushHourBfs("boards/easy-3.txt", board_size, goal_coords)
+

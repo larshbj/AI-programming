@@ -35,7 +35,9 @@ class BestFirstSearch():
         self.open_node_ids.append(root_node.id)
 
         node = root_node
+        num_actions = 0
         while not self.isSolution(node):
+            num_actions += 1
             if not self.open_node_ids:
                 print ("Failure")
                 return False
@@ -44,29 +46,38 @@ class BestFirstSearch():
             self.closed_node_ids.append(node_id)
 
             if self.isSolution(node):
-                return node
+                self.printSolution(node)
             
             successors = node.generateSuccessorNodes()
 
             if successors:
                 for successor in successors:
+                    # State exists from before
                     if successor.id in self.nodes:
                         successor = self.nodes[successor.id]
-                    else:
-                        self.attachAndEval(successor, node)
+                    # State is new
                     node.successors.append(successor)
+                    if successor.id not in self.nodes:
+                        self.attachAndEval(successor, node)
+                        self.nodes[successor.id] = successor
+                        self.open_node_ids.append(successor.id)
+                        self.sortIds()
 
-                    self.nodes[successor.id] = successor
-                    self.open_node_ids.append(successor.id)
-                    self.sortIds()
-
-                    if node.g + self.arcCost(successor, node) < successor.g: 
-                        print ('hei')
+                    # Is the new parent better than the old one?
+                    elif node.g + self.arcCost(successor, node) < successor.g:
+                        print ("was greater")
                         self.attachAndEval(successor, node)
                         if self.closed_node_ids[successor.id]:
                             self.propagatePathImprovements(successor)
 
-        return self.isSolution(node)
+    def printSolution(self, node):
+        print (node.state.board)
+        actions = 0
+        while node.parent is not None:
+            actions += 1
+            print (actions)
+            print (node.parent.state.board)
+            node = node.parent
 
     def sortIds(self):
         temp = {}
