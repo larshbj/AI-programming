@@ -1,5 +1,7 @@
 from operator import itemgetter
-import time 
+import time
+import sys
+import os
 
 class SearchState():
     def __init__(self):
@@ -105,7 +107,10 @@ class BestFirstSearch():
         print ('Number of nodes generated: {}'.format(len(self.nodes)))
 
     def printBoard(self, board, message):
-        print(chr(27) + "[2J")
+        if sys.platform == 'win32':
+            os.system('cls')
+        else:
+            print(chr(27) + "[2J")
         print (message)
         print ("-------------------------------")
         for row in board:
