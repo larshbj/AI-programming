@@ -266,14 +266,14 @@ class RushHourBfs(BestFirstSearch):
         hero = node.state.cars[0]
         return goal_coords['x'] - (hero.x+hero.size-1) == 0
 
-def runAllBoardsAndMethods(boards, method, goal_coords, board_size):
+def runAllBoardsAndMethods(boards, methods, goal_coords, board_size, display):
     for board in boards:
         print ('--------------------------')
         print (boards[board])
-        for method in method:
-            print (method[method])
-            RushHourBfs(method[method], boards[board], 
-                board_size, goal_coords)
+        for method in methods:
+            print ("Running search method: {}".format(methods[method]))
+            RushHourBfs(methods[method], boards[board], 
+                board_size, goal_coords, display)
 
 if __name__ == "__main__":
     boards = {
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     goal_coords = {'x': 5, 'y': 2}
     search_methods = {1:'breadth', 2:'depth', 3:'astar'}
 
-    # runAllBoardsAndMethods(boards, search_methods, goal_coords, board_size)
+    # runAllBoardsAndMethods(boards, search_methods, goal_coords, board_size, display=False)
     RushHourBfs(
        method      = 'astar', 
        file        = boards['easy'], 

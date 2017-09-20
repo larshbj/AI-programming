@@ -59,7 +59,9 @@ class BestFirstSearch():
                 else:
                     ans = raw_input('Do you want to visualise the final solution? (y/n): ')
                 if ans == "y":
-                    self.printSolution(node)
+                    self.printSolution(node, print_board = True)
+                else:
+                    self.printSolution(node, print_board = False)
                 return
             
             successors = node.generateSuccessorNodes()
@@ -96,18 +98,21 @@ class BestFirstSearch():
         successors.sort(key=lambda x: x.f, reverse=True)
         return successors
 
-    def printSolution(self, node):
+    def printSolution(self, node, print_board):
         boards = [node.state.board]
         while node.parent is not None:
             boards.append(node.parent.state.board)
             node = node.parent
         solution = reversed(boards)
         action_number = 0
-        for board in solution:
-            self.printBoard(board, "SOLUTION")
-            action_number += 1
+        if print_board:
+            for board in solution:
+                action_number += 1
+                self.printBoard(board, "SOLUTION  |  Step {}".format(action_number))
+        print ("-------------------------------")
         print ('Number of actions: {}'.format(action_number))
         print ('Number of nodes generated: {}'.format(len(self.nodes)))
+        print ("-------------------------------")
 
     def printBoard(self, board, message):
         if sys.platform == 'win32':
