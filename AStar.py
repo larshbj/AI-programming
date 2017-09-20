@@ -3,11 +3,16 @@ import time
 import sys
 import os
 
+# Not used in RushHour
 class SearchState():
     def __init__(self):
     # the board
         return
 
+# In general, a search-node class and its methods for handling
+    # a) parent-child node connections, and
+    # b) general search-graph creation and maintenance
+# should be sufficient for most A* applications.
 class SearchNode():
     def __init__(self, parent):
         self.parent = parent
@@ -28,11 +33,6 @@ class SearchNode():
     def arcCost(self, parent):
         raise NotImplementedError
 
-    # In general, a search-node class and its methods for handling
-        # a) parent-child node connections, and
-        # b) general search-graph creation and maintenance
-    # should be sufficient for most A* applications.
-
 class BestFirstSearch():
     def __init__(self, search_method, root_node, display):
         self.nodes = {}
@@ -43,22 +43,27 @@ class BestFirstSearch():
         self.open_node_ids.append(root_node.id)
 
         node = root_node
+
+        if display:
+            if sys.platform == 'win32':
+                show_popped = input('Do you want to visualise the popped nodes? (y/n): ')
+            else:
+                show_popped = raw_input('Do you want to visualise the popped nodes? (y/n): ')
+        else:
+            show_popped = 'n'
+
         while not self.isSolution(node):
             if not self.open_node_ids:
                 print ("Failure")
                 return False
             node_id = self.open_node_ids.pop(0)
             node = self.nodes[node_id]
-            if display:
+            if show_popped == 'y':
                 self.printBoard(node.state.board, "Showing popped nodes")
             self.closed_node_ids.append(node_id)
 
             if self.isSolution(node):
-                if sys.platform == 'win32':
-                    ans = input('Do you want to visualise the final solution? (y/n): ')
-                else:
-                    ans = raw_input('Do you want to visualise the final solution? (y/n): ')
-                if ans == "y":
+                if display:
                     self.printSolution(node, print_board = True)
                 else:
                     self.printSolution(node, print_board = False)
@@ -67,7 +72,6 @@ class BestFirstSearch():
             successors = node.generateSuccessorNodes()
 
             if successors:
-                successors = self.sortSuccessors(successors)
                 for successor in successors:
                     # State exists from before
                     if successor.id in self.nodes:
@@ -81,6 +85,7 @@ class BestFirstSearch():
                             self.open_node_ids.append(successor.id)
                         elif search_method == 'depth':
                             self.open_node_ids.insert(0, successor.id)
+                            self.sortIds()
                         elif search_method == 'astar':
                             self.open_node_ids.append(successor.id)
                             self.sortIds()
@@ -94,9 +99,26 @@ class BestFirstSearch():
                         if successor.id in self.closed_node_ids:
                             self.propagatePathImprovements(successor)
 
-    def sortSuccessors(self, successors):
-        successors.sort(key=lambda x: x.f, reverse=True)
-        return successors
+    def sortIds(self):
+        temp = {}
+        for node_id in self.open_node_ids:
+            temp[node_id] = self.nodes[node_id].f
+        tempSorted = sorted(temp.items(), key=itemgetter(1))
+        self.open_node_ids = [i[0] for i in tempSorted]
+
+    def attachAndEval(self, successor, parent):
+            successor.parent = parent
+            successor.g = parent.g + successor.arcCost(parent)
+            # h is already computed in init function
+            successor.f = successor.g + successor.h
+
+    def propagatePathImprovements(self, parent):
+        for successor in parent.successors:
+            if parent.g + successor.arcCost(parent) < successor.g:
+                successor.parent = parent
+                successor.g = parent.g + successor.arcCost(parent)
+                successor.f = successor.g + successor.h
+                self.propagatePathImprovements(successor)
 
     def printSolution(self, node, print_board):
         boards = [node.state.board]
@@ -124,24 +146,3 @@ class BestFirstSearch():
         for row in board:
             print (row)
         time.sleep(0.5)
-
-    def sortIds(self):
-        temp = {}
-        for node_id in self.open_node_ids:
-            temp[node_id] = self.nodes[node_id].f
-        tempSorted = sorted(temp.items(), key=itemgetter(1))
-        self.open_node_ids = [i[0] for i in tempSorted]
-
-    def attachAndEval(self, successor, parent):
-            successor.parent = parent
-            successor.g = parent.g + successor.arcCost(parent)
-            # h is already computed in init function
-            successor.f = successor.g + successor.h
-
-    def propagatePathImprovements(self, parent):
-        for successor in parent.successors:
-            if parent.g + successor.arcCost(parent) < successor.g:
-                successor.parent = parent
-                successor.g = parent.g + successor.arcCost(parent)
-                successor.f = successor.g + successor.h
-                self.propagatePathImprovements(successor)

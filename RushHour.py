@@ -1,6 +1,7 @@
 from AStar import BestFirstSearch, SearchState, SearchNode
 from copy import deepcopy
 
+# Car instance containing car parameters
 class Car(object):
     def __init__(self, car_params):
         self.orientation = car_params[0]
@@ -18,12 +19,14 @@ class RushHourState(SearchState):
         self.board = self.createStateBoardFromCars(board_size)
         self.createStateIdentifier()
 
+    # Creating identifier based on car parameters for the current state
     def createStateIdentifier(self):
         state_id = ''
         for car in self.cars:
             state_id = state_id + car.toString()
         self.id = state_id
 
+    # Based on current car parameters the board is generatet
     def createStateBoardFromCars(self, board_size):
         board = [['*']*board_size for i in range(board_size)]
         for index, car in enumerate(self.cars):
@@ -37,6 +40,7 @@ class RushHourState(SearchState):
                     y += 1
         return board
 
+    # Checking if a coordinate is outside of the board
     def isOutsideOfBoard(self, x, y, board_size):
         if x > board_size-1 or x < 0 \
         or y > board_size-1 or y < 0:
@@ -44,6 +48,7 @@ class RushHourState(SearchState):
         else:
             return False
 
+    # Checks for movements
     def canMoveUp(self, car):
         if car.orientation == 0: return False
         if not self.isOutsideOfBoard(car.x, car.y-1, self.board_size) \
@@ -88,13 +93,10 @@ class RushHourState(SearchState):
                 new_state = RushHourState(new_cars, board_size)
                 successor_states.append(new_state)
 
-        return successor_states # or chil_states
+        return successor_states
 
+# Handling node relationships
 class RushHourNode(SearchNode):
-    # In general, a search-node class and its methods for handling
-        # a) parent-child node connections, and
-        # b) general search-graph creation and maintenance
-    # should be sufficient for most A* applications.
     def __init__(self, state, board_size, goal_coords, parent=None):
         self.state = state
         self.id = state.id
@@ -119,6 +121,10 @@ class RushHourNode(SearchNode):
 
         return distance_to_goal - (hero.size-1) + number_of_obstacles
 
+
+
+#         Advanced Heuristic (not pretty, sorry) Skip to next horisontal line
+# -----------------------------------------------------------------------------------
     def advancedHeuristicEvaluation(self):
         hero = self.state.cars[0]
         board = self.state.board
@@ -227,10 +233,9 @@ class RushHourNode(SearchNode):
                 car_length_in_direction = car.y + (car.size-1) - y
         return car_length_in_direction + 1 # Add one for car cell currently blocking
 
+# -------------------------------------------------------------------------------------------
+    # generating nodes from successor states
     def generateSuccessorNodes(self):
-        # expands (parent) node
-        # generate successor_states to parent state
-
         nodes = []
         successor_states = self.state.generateSuccesorStates()
 
@@ -243,7 +248,6 @@ class RushHourNode(SearchNode):
         # arc-cost between parent node and and self (child node of parent)
         return 1
 
-
 class RushHourBfs(BestFirstSearch):
     def __init__(self, method, file, board_size, goal_coords, display):
         self.board_size = board_size
@@ -251,6 +255,7 @@ class RushHourBfs(BestFirstSearch):
         root_node = self.createRootNode(file)
         BestFirstSearch.__init__(self, method, root_node, display)
 
+    # Generating root node
     def createRootNode(self, file):
         cars = []
         with open(file) as f:
@@ -262,10 +267,12 @@ class RushHourBfs(BestFirstSearch):
         root_state = RushHourState(cars, board_size)
         return RushHourNode(root_state, board_size, goal_coords)
 
+    # Checking if root node is on goal position
     def isSolution(self, node):
         hero = node.state.cars[0]
         return goal_coords['x'] - (hero.x+hero.size-1) == 0
 
+# Running all boards and all methods
 def runAllBoardsAndMethods(boards, methods, goal_coords, board_size, display):
     for board in boards:
         print ('--------------------------')
@@ -286,11 +293,12 @@ if __name__ == "__main__":
     goal_coords = {'x': 5, 'y': 2}
     search_methods = {1:'breadth', 2:'depth', 3:'astar'}
 
-    # runAllBoardsAndMethods(boards, search_methods, goal_coords, board_size, display=False)
-    RushHourBfs(
-       method      = 'astar', 
-       file        = boards['easy'], 
-       board_size  = 6, 
-       goal_coords = {'x': 5, 'y': 2},
-       display     = False
-    )
+    runAllBoardsAndMethods(boards, search_methods, goal_coords, board_size, display=False)
+    
+    # RushHourBfs(
+    #    method      = 'astar', 
+    #    file        = boards['easy'], 
+    #    board_size  = 6, 
+    #    goal_coords = {'x': 5, 'y': 2},
+    #    display     = True
+    # )
