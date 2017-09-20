@@ -55,7 +55,7 @@ class BestFirstSearch():
 
             if self.isSolution(node):
                 if sys.platform == 'win32':
-                    ans = input = sys.stdin.read()
+                    ans = input('Do you want to visualise the final solution? (y/n): ')
                 else:
                     ans = raw_input('Do you want to visualise the final solution? (y/n): ')
                 if ans == "y":
