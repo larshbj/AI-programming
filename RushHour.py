@@ -40,28 +40,28 @@ class RushHourState(SearchState):
     def isOutsideOfBoard(self, x, y, board_size):
         if x > board_size-1 or x < 0 \
         or y > board_size-1 or y < 0:
-            return False
-        else:
             return True
+        else:
+            return False
 
     def canMoveUp(self, car):
         if car.orientation == 0: return False
-        if self.isOutsideOfBoard(car.x, car.y-1, self.board_size) \
+        if not self.isOutsideOfBoard(car.x, car.y-1, self.board_size) \
         and self.board[car.y-1][car.x] == '*': return True
 
     def canMoveDown(self, car):
         if car.orientation == 0: return False
-        if self.isOutsideOfBoard(car.x, car.y+car.size, self.board_size) \
+        if not self.isOutsideOfBoard(car.x, car.y+car.size, self.board_size) \
         and self.board[car.y+car.size][car.x] == '*': return True
 
     def canMoveLeft(self, car):
         if car.orientation == 1: return False
-        if self.isOutsideOfBoard(car.x-1, car.y, self.board_size) \
+        if not self.isOutsideOfBoard(car.x-1, car.y, self.board_size) \
         and self.board[car.y][car.x-1] == '*': return True
 
     def canMoveRight(self, car):
         if car.orientation == 1: return False
-        if self.isOutsideOfBoard(car.x+car.size, car.y, self.board_size) \
+        if not self.isOutsideOfBoard(car.x+car.size, car.y, self.board_size) \
         and self.board[car.y][car.x+car.size] == '*': return True
 
     def generateSuccesorStates(self):
@@ -103,6 +103,10 @@ class RushHourNode(SearchNode):
         SearchNode.__init__(self, parent)
 
     def heuristicEvaluation(self):
+        # return self.basicHeuristicEvaluation()
+        return self.advancedHeuristicEvaluation()
+
+    def basicHeuristicEvaluation(self):
         hero = self.state.cars[0]
         board = self.state.board
         distance_to_goal = self.goal_coords['x'] - (hero.x+hero.size-1)
@@ -113,7 +117,119 @@ class RushHourNode(SearchNode):
             if board[hero.y][x] != '*':
                 number_of_obstacles += 1
 
+        return distance_to_goal - (hero.size-1) + number_of_obstacles
+
+    def advancedHeuristicEvaluation(self):
+        hero = self.state.cars[0]
+        board = self.state.board
+        distance_to_goal = self.goal_coords['x'] - (hero.x+hero.size-1)
+        number_of_obstacles = self.findNumberOfObstacles(hero, distance_to_goal, '+')
+        if number_of_obstacles == -1:
+            print "Obstacles can not move out of the way!"
+            return 100000
         return distance_to_goal + number_of_obstacles
+
+    def findNumberOfObstacles(self, car, distance_to_move, direction):
+        number_of_obstacles = 0
+        for i in range(1, distance_to_move):
+            if car.orientation == 0:
+                car_x = car.x
+                if (direction == '+'):
+                    car_x += car.size - 1 # Must add size of car when moving in positive direction
+                x = eval('{} {} {}'.format(car_x, direction, i)) # example: car.x + i
+                y = car.y
+            else: # i.e car.orientation == 1
+                car_y = car.y
+                if (direction == '+'):
+                    car_y += car.size - 1
+                x = car.x
+                y = eval('{} {} {}'.format(car_y, direction, i))
+            cell_symbol = self.state.board[y][x]
+            if cell_symbol != '*':
+                obstacle_index = int(cell_symbol)
+                if obstacle_index == 0:
+                    print ("Obstacles meet hero in loop")
+                    return 100000
+                obstacle = self.state.cars[obstacle_index]
+                direction = self.chooseDirection(x,y,obstacle)
+
+                if direction is None:
+                    print ("Leaf obstacle can't move")
+                    return -1 # One obstacle in end of recursion, which can not move.
+                distance_to_move = self.calcDistanceToMove(x,y,obstacle,direction)
+                next_obstacles = self.findNumberOfObstacles(obstacle, distance_to_move, 
+                    direction)
+
+                if next_obstacles == -1:
+                    direction = self.flipDirection(direction)
+                    distance_to_move = self.calcDistanceToMove(x,y,obstacle,direction)
+                    next_obstacles = self.findNumberOfObstacles(obstacle, distance_to_move, 
+                    direction)
+                number_of_obstacles += 1 + next_obstacles
+        return number_of_obstacles + distance_to_move
+
+    def flipDirection(direction):
+        if direction == '-':
+            return '+'
+        else:
+            return '-'
+
+    def chooseDirection(self, x, y, car):
+        if car.orientation == 1:
+            distance_up = self.calcDistanceToMove(x,y,car,'-')
+            y_up = car.y-distance_up
+
+            distance_down = self.calcDistanceToMove(x,y,car,'+')
+            y_down = car.y + car.size-1 + distance_down
+
+            if self.state.isOutsideOfBoard(x, y_up, self.board_size):
+                # print "Coords {}, {} is outside".format(x,y_up)
+                distance_up = -1
+            elif self.state.isOutsideOfBoard(x, y_down, self.board_size):
+                # print "Coords {}, {} is outside".format(x,y_down)
+                distance_down = -1
+
+
+            if distance_up == -1 and distance_down == -1:
+                return None
+            elif distance_up == -1:
+                return '+'
+            elif distance_down == -1:
+                return '-'
+            else:
+                return '-' if (distance_up < distance_down) else '+'
+        else: #is 0
+            distance_left = self.calcDistanceToMove(x,y,car,'-')
+            x_left = car.x-distance_left
+
+            distance_right = self.calcDistanceToMove(x,y,car,'+')
+            x_right = car.x + car.size-1 + distance_right
+
+            if self.state.isOutsideOfBoard(x_left, y, self.board_size):
+                # print "Coords {}, {} is outside".format(x_left ,y)
+                distance_left = -1
+            elif self.state.isOutsideOfBoard(x_right, y, self.board_size):
+                # print "Coords {}, {} is outside".format(x_right,y)
+                distance_right = -1
+
+            if distance_left == -1 and distance_right == -1:
+                return None
+            elif distance_left == -1:
+                return '+'
+            elif distance_right == -1:
+                return '-'
+            else:
+                return '-' if (distance_left < distance_right) else '+'
+
+    def calcDistanceToMove(self, x, y, car, direction):
+        if direction == '+':
+            car_length_in_direction = x - car.x + y - car.y
+        else : # i.e. direction == '-'
+            if car.orientation == 0:
+                car_length_in_direction = car.x + (car.size-1) - x
+            else: # i.e orientation == 1
+                car_length_in_direction = car.y + (car.size-1) - y
+        return car_length_in_direction + 1 # Add one for car cell currently blocking
 
     def generateSuccessorNodes(self):
         # expands (parent) node
@@ -127,13 +243,17 @@ class RushHourNode(SearchNode):
                 nodes.append(RushHourNode(state, self.board_size, self.goal_coords, self))
         return nodes
 
+    def arcCost(self, parent):
+        # arc-cost between parent node and and self (child node of parent)
+        return 1
+
 
 class RushHourBfs(BestFirstSearch):
-    def __init__(self, file, board_size, goal_coords):
+    def __init__(self, search_method, file, board_size, goal_coords):
         self.board_size = board_size
         self.goal_coords = goal_coords
         root_node = self.createRootNode(file)
-        BestFirstSearch.__init__(self, root_node)
+        BestFirstSearch.__init__(self, search_method, root_node)
 
     def createRootNode(self, file):
         cars = []
@@ -150,11 +270,25 @@ class RushHourBfs(BestFirstSearch):
         hero = node.state.cars[0]
         return goal_coords['x'] - (hero.x+hero.size-1) == 0
 
-    def arcCost(self, successor, parent):
-        # arc-cost between parent node and child node
-        return 1
+def runAllBoardsAndMethods(boards, search_methods, goal_coords, board_size):
+    for board in boards:
+        print ('--------------------------')
+        print (boards[board])
+        for meth in search_methods:
+            print (search_methods[meth])
+            RushHourBfs(search_methods[meth], boards[board], 
+                board_size, goal_coords)
 
+boards = {
+    'easy': 'boards/easy-3.txt',
+    'medium': 'boards/medium-1.txt',
+    'hard': 'boards/hard-3.txt',
+    'expert': 'boards/expert-2.txt'
+}
 board_size = 6
 goal_coords = {'x': 5, 'y': 2}
-rh = RushHourBfs("boards/easy-3.txt", board_size, goal_coords)
+search_methods = {1:'breadth', 2:'depth', 3:'astar'}
 
+runAllBoardsAndMethods(boards, search_methods, goal_coords, board_size)
+# RushHourBfs(search_methods[3], boards['easy'], 
+#     board_size, goal_coords)
