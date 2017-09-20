@@ -292,5 +292,5 @@ if __name__ == "__main__":
        file        = boards['easy'], 
        board_size  = 6, 
        goal_coords = {'x': 5, 'y': 2},
-       display     = True
+       display     = False
     )
