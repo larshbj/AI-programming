@@ -105,9 +105,9 @@ class BestFirstSearch():
             node = node.parent
         solution = reversed(boards)
         action_number = 0
-        if print_board:
-            for board in solution:
-                action_number += 1
+        for board in solution:
+            action_number += 1
+            if print_board:
                 self.printBoard(board, "SOLUTION  |  Step {}".format(action_number))
         print ("-------------------------------")
         print ('Number of actions: {}'.format(action_number))
