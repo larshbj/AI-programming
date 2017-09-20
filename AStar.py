@@ -54,7 +54,10 @@ class BestFirstSearch():
             self.closed_node_ids.append(node_id)
 
             if self.isSolution(node):
-                ans = raw_input('Do you want to visualise the final solution? (y/n): ')
+                if sys.platform == 'win32':
+                    ans = input = sys.stdin.read()
+                else:
+                    ans = raw_input('Do you want to visualise the final solution? (y/n): ')
                 if ans == "y":
                     self.printSolution(node)
                 return
