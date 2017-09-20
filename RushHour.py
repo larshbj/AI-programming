@@ -125,7 +125,7 @@ class RushHourNode(SearchNode):
         distance_to_goal = self.goal_coords['x'] - (hero.x+hero.size-1)
         number_of_obstacles = self.findNumberOfObstacles(hero, distance_to_goal, '+')
         if number_of_obstacles == -1:
-            print "Obstacles can not move out of the way!"
+            print ("Obstacles can not move out of the way!")
             return 100000
         return distance_to_goal + number_of_obstacles
 
@@ -183,10 +183,8 @@ class RushHourNode(SearchNode):
             y_down = car.y + car.size-1 + distance_down
 
             if self.state.isOutsideOfBoard(x, y_up, self.board_size):
-                # print "Coords {}, {} is outside".format(x,y_up)
                 distance_up = -1
             elif self.state.isOutsideOfBoard(x, y_down, self.board_size):
-                # print "Coords {}, {} is outside".format(x,y_down)
                 distance_down = -1
 
 
@@ -206,10 +204,8 @@ class RushHourNode(SearchNode):
             x_right = car.x + car.size-1 + distance_right
 
             if self.state.isOutsideOfBoard(x_left, y, self.board_size):
-                # print "Coords {}, {} is outside".format(x_left ,y)
                 distance_left = -1
             elif self.state.isOutsideOfBoard(x_right, y, self.board_size):
-                # print "Coords {}, {} is outside".format(x_right,y)
                 distance_right = -1
 
             if distance_left == -1 and distance_right == -1:
@@ -249,11 +245,11 @@ class RushHourNode(SearchNode):
 
 
 class RushHourBfs(BestFirstSearch):
-    def __init__(self, search_method, file, board_size, goal_coords):
+    def __init__(self, method, file, board_size, goal_coords, display):
         self.board_size = board_size
         self.goal_coords = goal_coords
         root_node = self.createRootNode(file)
-        BestFirstSearch.__init__(self, search_method, root_node)
+        BestFirstSearch.__init__(self, method, root_node, display)
 
     def createRootNode(self, file):
         cars = []
@@ -270,25 +266,31 @@ class RushHourBfs(BestFirstSearch):
         hero = node.state.cars[0]
         return goal_coords['x'] - (hero.x+hero.size-1) == 0
 
-def runAllBoardsAndMethods(boards, search_methods, goal_coords, board_size):
+def runAllBoardsAndMethods(boards, method, goal_coords, board_size):
     for board in boards:
         print ('--------------------------')
         print (boards[board])
-        for meth in search_methods:
-            print (search_methods[meth])
-            RushHourBfs(search_methods[meth], boards[board], 
+        for method in method:
+            print (method[method])
+            RushHourBfs(method[method], boards[board], 
                 board_size, goal_coords)
 
-boards = {
-    'easy': 'boards/easy-3.txt',
-    'medium': 'boards/medium-1.txt',
-    'hard': 'boards/hard-3.txt',
-    'expert': 'boards/expert-2.txt'
-}
-board_size = 6
-goal_coords = {'x': 5, 'y': 2}
-search_methods = {1:'breadth', 2:'depth', 3:'astar'}
+if __name__ == "__main__":
+    boards = {
+        'easy': 'boards/easy-3.txt',
+        'medium': 'boards/medium-1.txt',
+        'hard': 'boards/hard-3.txt',
+        'expert': 'boards/expert-2.txt'
+    }
+    board_size = 6
+    goal_coords = {'x': 5, 'y': 2}
+    search_methods = {1:'breadth', 2:'depth', 3:'astar'}
 
-runAllBoardsAndMethods(boards, search_methods, goal_coords, board_size)
-# RushHourBfs(search_methods[3], boards['easy'], 
-#     board_size, goal_coords)
+    # runAllBoardsAndMethods(boards, search_methods, goal_coords, board_size)
+    RushHourBfs(
+       method      = 'astar', 
+       file        = boards['easy'], 
+       board_size  = 6, 
+       goal_coords = {'x': 5, 'y': 2},
+       display     = True
+    )

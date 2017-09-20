@@ -1,4 +1,5 @@
 from operator import itemgetter
+import time 
 
 class SearchState():
     def __init__(self):
@@ -31,7 +32,7 @@ class SearchNode():
     # should be sufficient for most A* applications.
 
 class BestFirstSearch():
-    def __init__(self, search_method, root_node):
+    def __init__(self, search_method, root_node, display):
         self.nodes = {}
         self.closed_node_ids = []
         self.open_node_ids = []
@@ -46,10 +47,14 @@ class BestFirstSearch():
                 return False
             node_id = self.open_node_ids.pop(0)
             node = self.nodes[node_id]
+            if display:
+                self.printBoard(node.state.board, "Showing popped nodes")
             self.closed_node_ids.append(node_id)
 
             if self.isSolution(node):
-                self.printSolution(node)
+                ans = raw_input('Do you want to visualise the final solution? (y/n): ')
+                if ans == "y":
+                    self.printSolution(node)
                 return
             
             successors = node.generateSuccessorNodes()
@@ -94,9 +99,18 @@ class BestFirstSearch():
         solution = reversed(boards)
         action_number = 0
         for board in solution:
+            self.printBoard(board, "SOLUTION")
             action_number += 1
         print ('Number of actions: {}'.format(action_number))
         print ('Number of nodes generated: {}'.format(len(self.nodes)))
+
+    def printBoard(self, board, message):
+        print(chr(27) + "[2J")
+        print (message)
+        print ("-------------------------------")
+        for row in board:
+            print (row)
+        time.sleep(0.5)
 
     def sortIds(self):
         temp = {}
