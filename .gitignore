@@ -38,3 +38,7 @@ Thumbs.db
 
 # Virtual Environment
 venv/
+
+# Files
+Module\ 2/mnist-zip/
+Module\ 2/Datafiles/
