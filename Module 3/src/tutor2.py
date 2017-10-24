@@ -1,3 +1,6 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
+
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as PLT
@@ -111,5 +114,3 @@ def autoex1(epochs=2000,num_bits=3,lrate=0.5,tint=25,showint=100):
     PLT.ioff()
     TFT.close_session(ann.current_session)
     return ann
-
-

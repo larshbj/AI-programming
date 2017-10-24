@@ -1,4 +1,6 @@
 # A little Tensorflow tutorial
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 import tensorflow as tf
 import numpy as np
@@ -34,7 +36,7 @@ def tfex2b(a,b):
     sess.close()
     return result
 
-# Consolidate this session-running into a simple function.  'operators' can be a single operator or a list of ops.
+# Consolidate this session-running into a simple function.  'operators' can be a list of a single or multiple operator.
 
 def quickrun(operators):
     sess = tf.Session()
